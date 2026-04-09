@@ -96,9 +96,48 @@ body {
     letter-spacing: 0.05em;
 }
 
+.balance-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.toggle-eye-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.toggle-eye-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-eye-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.hidden {
+    display: none !important;
+}
+
 #balance-display {
     font-size: 3rem; 
     font-weight: 800;
+    margin: 0;
+    line-height: 1;
     letter-spacing: -0.04em;
     background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
     -webkit-background-clip: text;

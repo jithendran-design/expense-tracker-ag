@@ -31,7 +31,15 @@
             <div class="header-top">
                 <p class="subtitle">Remaining Balance</p>
             </div>
-            <h1 id="balance-display">₹0</h1>
+            <div class="balance-wrapper">
+                <h1 id="balance-display">••••••</h1>
+                <button type="button" id="toggle-balance-btn" class="toggle-eye-btn" aria-label="Toggle Balance Visibility">
+                    <!-- Hidden Eye Icon (Default) -->
+                    <svg id="eye-hidden-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                    <!-- Visible Eye Icon -->
+                    <svg id="eye-visible-icon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+            </div>
         </header>
 
         <section class="add-expense-section fade-in" style="animation-delay: 0.1s;">
@@ -39,7 +47,7 @@
                 <form id="expense-form">
                     <div class="input-group amount-group">
                         <span class="currency-symbol">₹</span>
-                        <input type="number" id="amount" class="amount-input" placeholder="0" step="0.01" required autocomplete="off">
+                        <input type="number" id="amount" class="amount-input" placeholder="0" step="0.01" inputmode="decimal" required autocomplete="off">
                     </div>
                     
                     <div class="input-group place-group mt-20">
@@ -103,7 +111,7 @@
                         <form id="income-form" class="inline-income-form">
                             <div class="input-group place-group compact-income-input">
                                 <span class="currency-symbol-small">₹</span>
-                                <input type="number" id="income-amount" class="place-input" placeholder="0" step="0.01" required autocomplete="off">
+                                <input type="number" id="income-amount" class="place-input" placeholder="0" step="0.01" inputmode="decimal" required autocomplete="off">
                             </div>
                             <button type="submit" class="submit-btn income-submit-btn compact-btn">
                                 <span>Add Income</span>

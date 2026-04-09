@@ -38,6 +38,9 @@ const suggestedCategorySpan = document.getElementById('suggested-category');
 const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toast-message');
 const balanceDisplay = document.getElementById('balance-display');
+const toggleBalanceBtn = document.getElementById('toggle-balance-btn');
+const eyeHiddenIcon = document.getElementById('eye-hidden-icon');
+const eyeVisibleIcon = document.getElementById('eye-visible-icon');
 
 // Overlay Elements
 const sidePanel = document.getElementById('side-panel');
@@ -71,6 +74,7 @@ function initGreeting() {
 
 // Internal State
 let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+let isBalanceHidden = true; // Required by user: hidden by default
 
 // Format Currency
 function formatCurrency(amount) {
@@ -85,14 +89,31 @@ function updateBalance() {
         else balance -= tx.amount;
     });
 
-    balanceDisplay.textContent = formatCurrency(Math.abs(balance));
-
-    if (balance < 0) {
-        balanceDisplay.textContent = '-' + balanceDisplay.textContent;
-        balanceDisplay.classList.add('balance-negative');
-    } else {
+    if (isBalanceHidden) {
+        balanceDisplay.textContent = '••••••';
         balanceDisplay.classList.remove('balance-negative');
+        eyeHiddenIcon.classList.remove('hidden');
+        eyeVisibleIcon.classList.add('hidden');
+    } else {
+        balanceDisplay.textContent = formatCurrency(Math.abs(balance));
+
+        if (balance < 0) {
+            balanceDisplay.textContent = '-' + balanceDisplay.textContent;
+            balanceDisplay.classList.add('balance-negative');
+        } else {
+            balanceDisplay.classList.remove('balance-negative');
+        }
+        eyeHiddenIcon.classList.add('hidden');
+        eyeVisibleIcon.classList.remove('hidden');
     }
+}
+
+// Toggle Balance specific action
+if (toggleBalanceBtn) {
+    toggleBalanceBtn.addEventListener('click', () => {
+        isBalanceHidden = !isBalanceHidden;
+        updateBalance();
+    });
 }
 
 // Render Transactions Table
@@ -165,7 +186,9 @@ sidePanel.addEventListener('click', (e) => {
 });
 
 // Expense Submission
-form.addEventListener('submit', (e) => {
+const submitBtn = document.getElementById('submit-btn');
+
+form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const amount = parseFloat(amountInput.value);
@@ -173,19 +196,38 @@ form.addEventListener('submit', (e) => {
 
     if (isNaN(amount) || amount <= 0 || !place) return;
 
+    // Temporarily disable button to show loading state
+    const originalBtnHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span>Locating...</span>';
+    submitBtn.style.opacity = '0.7';
+    submitBtn.style.pointerEvents = 'none';
+
     let coordinates = null;
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => coordinates = { lat: pos.coords.latitude, lng: pos.coords.longitude },
-            (err) => console.log("Location access denied")
-        );
+
+    try {
+        // Use OpenStreetMap Nominatim to geocode the inputted place string
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+            coordinates = { 
+                lat: parseFloat(data[0].lat), 
+                lng: parseFloat(data[0].lon) 
+            };
+        }
+    } catch (err) {
+        console.log("OSM fetch failed", err);
     }
 
     saveTransaction('expense', amount, place, categorizePlace(place), coordinates);
 
+    // Restore UI
     amountInput.value = '';
     placeInput.value = '';
     aiSuggestion.classList.add('hidden');
+    submitBtn.innerHTML = originalBtnHTML;
+    submitBtn.style.opacity = '1';
+    submitBtn.style.pointerEvents = 'all';
 
     showToast('Expense logged successfully.');
 
