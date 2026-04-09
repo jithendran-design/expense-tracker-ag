@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Expense Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#0d0e15">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./icon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS with version bumping to bypass cache -->
+    <link rel="stylesheet" href="./styles.css?v=3">
+</head>
+<body>
+    <div class="blob-bg"></div>
+    <div class="blob-bg blob-2"></div>
+
+    <main class="app-container">
+        
+        <header class="app-header fade-in">
+            <h2 id="greeting" class="greeting-text">Good Evening, Jithendran</h2>
+            <div class="header-top">
+                <p class="subtitle">Remaining Balance</p>
+            </div>
+            <h1 id="balance-display">₹0</h1>
+        </header>
+
+        <section class="add-expense-section fade-in" style="animation-delay: 0.1s;">
+            <div class="glass-panel main-expense-card">
+                <form id="expense-form">
+                    <div class="input-group amount-group">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="amount" class="amount-input" placeholder="0" step="0.01" required autocomplete="off">
+                    </div>
+                    
+                    <div class="input-group place-group mt-20">
+                        <div class="input-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        </div>
+                        <input type="text" id="place" class="place-input" placeholder="Where did you spend?" required autocomplete="off">
+                    </div>
+
+                    <div id="ai-suggestion" class="ai-suggestion hidden">
+                        <span class="ai-badge">AI</span>
+                        Categorized as: <span id="suggested-category">Food</span>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submit-btn">
+                        <span>Log Expense</span>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="view-history-container">
+                <button type="button" id="view-expenses-btn" class="subtle-link">&rarr; view expenses</button>
+            </div>
+        </section>
+
+        <!-- Side Panel Overlay -->
+        <div id="side-panel" class="overlay right-overlay">
+            <div class="overlay-content glass-panel">
+                <div class="side-header">
+                    <h2>Your Expenses</h2>
+                    <button type="button" class="close-btn" id="close-panel-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                
+                <div class="scroll-content">
+                    
+                    <!-- Transactions Table Section (Moved to Top) -->
+                    <div class="transactions-section">
+                        <div class="table-container">
+                            <table class="tx-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Details</th>
+                                        <th class="align-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-table-body">
+                                    <!-- Dynamic rows go here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Spacer specifically to push income to the bottom if content isn't long -->
+                    <div style="flex: 1;"></div>
+
+                    <!-- Add Income Section (Moved to Bottom, single line) -->
+                    <div class="income-section mt-30">
+                        <form id="income-form" class="inline-income-form">
+                            <div class="input-group place-group compact-income-input">
+                                <span class="currency-symbol-small">₹</span>
+                                <input type="number" id="income-amount" class="place-input" placeholder="0" step="0.01" required autocomplete="off">
+                            </div>
+                            <button type="submit" class="submit-btn income-submit-btn compact-btn">
+                                <span>Add Income</span>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="toast hidden">
+            <div class="toast-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span id="toast-message">Logged successfully.</span>
+            </div>
+        </div>
+    </main>
+
+    <script src="./main.js?v=3"></script>
+</body>
+</html>
