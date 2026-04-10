@@ -175,7 +175,7 @@ const categoryRules = {
         'moneyview', 'navi', 'kreditbee', 'lazypay', 'slice', 'uni cards',
         'early salary', 'stashfin', 'fibe',
         // Generic
-        'emi', 'loan repayment', 'home loan', 'car loan', 'personal loan',
+        'emi', 'loan', 'loan repayment', 'home loan', 'car loan', 'personal loan',
         'education loan', 'gold loan', 'loan emi', 'equated monthly',
         'prepayment', 'foreclosure', 'part payment', 'loan processing fee',
         'down payment', 'mortgage', 'hypothecation'
@@ -347,8 +347,14 @@ const scrollContent = document.querySelector('.scroll-content');
 // Income Elements
 const incomeForm = document.getElementById('income-form');
 const incomeAmountInput = document.getElementById('income-amount');
-// Table Element
-const transactionsTableBody = document.getElementById('transactions-table-body');
+// List Element
+const transactionsList = document.getElementById('transactions-list');
+
+// Dialog Elements
+const deleteDialogOverlay = document.getElementById('delete-dialog-overlay');
+const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+let pendingDeleteId = null;
 
 // Initialize Greeting
 function initGreeting() {
@@ -358,9 +364,9 @@ function initGreeting() {
     const hour = new Date().getHours();
     let timeGreeting = "Good Evening";
 
-    if (hour < 12) {
+    if (hour >= 5 && hour < 12) {
         timeGreeting = "Good Morning";
-    } else if (hour < 17) {
+    } else if (hour >= 12 && hour < 17) {
         timeGreeting = "Good Afternoon";
     }
 
@@ -372,8 +378,9 @@ let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
 let isBalanceHidden = true; // Required by user: hidden by default
 
 // Format Currency
-function formatCurrency(amount) {
-    return '₹' + amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatCurrency(amount, withSymbol = true) {
+    const numStr = amount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return withSymbol ? '₹' + numStr : numStr;
 }
 
 // Update Balance
@@ -411,35 +418,162 @@ if (toggleBalanceBtn) {
     });
 }
 
-// Render Transactions Table
+// Render Transactions List
 function renderTransactions() {
-    transactionsTableBody.innerHTML = '';
+    transactionsList.innerHTML = '';
 
     if (transactions.length === 0) {
-        transactionsTableBody.innerHTML = '<tr><td colspan="3" class="empty-state">No transactions yet.</td></tr>';
+        transactionsList.innerHTML = '<div class="empty-state">No transactions yet.</div>';
         return;
     }
 
     const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    sorted.forEach(tx => {
-        const tr = document.createElement('tr');
-        const isExpense = tx.type === 'expense';
-        const formattedAmount = (isExpense ? '-' : '+') + formatCurrency(tx.amount);
-        const dateStr = new Date(tx.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-        const catOrIncome = tx.type === 'income' ? 'Income' : tx.category;
+    // Grouping
+    const groups = [];
+    let currentGroup = null;
 
-        tr.innerHTML = `
-            <td>${dateStr}</td>
-            <td>
-                <div>${tx.place}</div>
-                <span class="tx-cat-sub">${catOrIncome}</span>
-            </td>
-            <td class="tx-amt-col ${isExpense ? 'expense' : 'income'}">${formattedAmount}</td>
+    sorted.forEach(tx => {
+        const txDate = new Date(tx.date);
+        
+        let dateKey = txDate.toLocaleDateString('en-IN', { month: 'long', day: '2-digit' });
+        
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (txDate.toDateString() === today.toDateString()) {
+            dateKey = 'Today';
+        } else if (txDate.toDateString() === yesterday.toDateString()) {
+            dateKey = 'Yesterday';
+        }
+
+        if (!currentGroup || currentGroup.dateKey !== dateKey) {
+            currentGroup = { dateKey, netAmount: 0, txs: [] };
+            groups.push(currentGroup);
+        }
+
+        currentGroup.txs.push(tx);
+        if (tx.type === 'income') {
+            currentGroup.netAmount += tx.amount;
+        } else {
+            currentGroup.netAmount -= tx.amount;
+        }
+    });
+
+    groups.forEach(group => {
+        const isNetNegative = group.netAmount < 0;
+        const absNet = Math.abs(group.netAmount);
+        const netFmt = (isNetNegative ? '-₹' : '₹') + absNet.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        
+        const groupCard = document.createElement('div');
+        groupCard.className = 'tx-date-group-card';
+        
+        const groupHeader = document.createElement('div');
+        groupHeader.className = 'tx-group-header';
+        groupHeader.innerHTML = `
+            <h3>${group.dateKey}</h3>
+            <span class="group-net-amt">${netFmt}</span>
         `;
-        transactionsTableBody.appendChild(tr);
+        groupCard.appendChild(groupHeader);
+
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'tx-items-list';
+
+        group.txs.forEach(tx => {
+            const isExpense = tx.type === 'expense';
+            const formattedAmount = (isExpense ? '-₹' : '+₹') + Math.abs(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            
+            const timeStr = new Date(tx.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const catOrIncome = tx.type === 'income' ? 'Income' : tx.category;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'tx-list-item';
+            
+            itemDiv.innerHTML = `
+                <div class="tx-item-main" data-id="${tx.id}">
+                    <div class="tx-item-details">
+                        <div class="tx-item-title">${tx.place}</div>
+                        <div class="tx-item-category">
+                            <span>${catOrIncome}</span>
+                        </div>
+                    </div>
+                    <div class="tx-item-values">
+                        <div class="tx-item-amt ${isExpense ? 'expense' : 'income'}">${formattedAmount}</div>
+                        <div class="tx-item-time">${timeStr}</div>
+                    </div>
+                </div>
+                <div class="tx-item-expanded" id="expanded-${tx.id}">
+                    <div class="expanded-content">
+                        <div class="expanded-info">
+                            <span class="info-label">Date</span>
+                            <span class="info-value">${new Date(tx.date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' })}</span>
+                        </div>
+                        ${tx.coordinates ? `
+                        <div class="expanded-info">
+                            <span class="info-label">Location</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${tx.coordinates.lat},${tx.coordinates.lng}" target="_blank" class="info-value link">View Map</a>
+                        </div>
+                        ` : ''}
+                        <button type="button" class="action-btn delete-action-btn" data-id="${tx.id}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            Delete Expense
+                        </button>
+                    </div>
+                </div>
+            `;
+            itemsContainer.appendChild(itemDiv);
+        });
+
+        groupCard.appendChild(itemsContainer);
+        transactionsList.appendChild(groupCard);
     });
 }
+
+// Handle row actions (Accordion & Delete)
+transactionsList.addEventListener('click', (e) => {
+    // Check if delete button was clicked
+    const deleteBtn = e.target.closest('.delete-action-btn');
+    if (deleteBtn) {
+        e.stopPropagation();
+        pendingDeleteId = parseInt(deleteBtn.getAttribute('data-id'));
+        deleteDialogOverlay.classList.add('active');
+        return;
+    }
+
+    // Check if main row was clicked for accordion
+    const txItemMain = e.target.closest('.tx-item-main');
+    if (txItemMain) {
+        const id = txItemMain.getAttribute('data-id');
+        const expandedDiv = document.getElementById(`expanded-${id}`);
+        
+        // Auto-close siblings
+        document.querySelectorAll('.tx-item-expanded.active').forEach(el => {
+            if (el !== expandedDiv) el.classList.remove('active');
+        });
+
+        if (expandedDiv) {
+            expandedDiv.classList.toggle('active');
+        }
+    }
+});
+
+cancelDeleteBtn.addEventListener('click', () => {
+    pendingDeleteId = null;
+    deleteDialogOverlay.classList.remove('active');
+});
+
+confirmDeleteBtn.addEventListener('click', () => {
+    if (pendingDeleteId !== null) {
+        transactions = transactions.filter(tx => tx.id !== pendingDeleteId);
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+        updateBalance();
+        renderTransactions();
+        showToast('Item deleted successfully.');
+        pendingDeleteId = null;
+        deleteDialogOverlay.classList.remove('active');
+    }
+});
 
 // Debounce helper
 function debounce(func, wait) {
@@ -500,18 +634,34 @@ form.addEventListener('submit', async (e) => {
     let coordinates = null;
 
     try {
-        // Use OpenStreetMap Nominatim to geocode the inputted place string
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`);
-        const data = await response.json();
+        // Try getting accurate device location first
+        coordinates = await new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error("Geolocation not supported"));
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                (err) => reject(err),
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 10000 }
+            );
+        });
+    } catch (geoErr) {
+        console.log("Device geolocation failed, falling back to OSM search.", geoErr);
+        try {
+            // Use OpenStreetMap Nominatim to geocode the inputted place string as fallback
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`);
+            const data = await response.json();
 
-        if (data && data.length > 0) {
-            coordinates = {
-                lat: parseFloat(data[0].lat),
-                lng: parseFloat(data[0].lon)
-            };
+            if (data && data.length > 0) {
+                coordinates = {
+                    lat: parseFloat(data[0].lat),
+                    lng: parseFloat(data[0].lon)
+                };
+            }
+        } catch (err) {
+            console.log("OSM fetch failed", err);
         }
-    } catch (err) {
-        console.log("OSM fetch failed", err);
     }
 
     saveTransaction('expense', amount, place, categorizePlace(place), coordinates);
