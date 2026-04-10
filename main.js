@@ -7,15 +7,310 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Local AI: Rule-based Categorization Engine
+//Rule-based Categorization Engine
 const categoryRules = {
-    'Food & Drink': ['starbucks', 'mcdonalds', 'restaurant', 'cafe', 'coffee', 'pizza', 'burger', 'subway', 'bar', 'grill', 'diner', 'food', 'dinner'],
-    'Groceries': ['walmart', 'target', 'whole foods', 'trader joe', 'kroger', 'safeway', 'albert', 'market', 'grocery', 'aldi', 'supermarket'],
-    'Transport': ['uber', 'lyft', 'taxi', 'gas', 'shell', 'chevron', 'exxon', 'train', 'flight', 'airline', 'transit', 'metro'],
-    'Entertainment': ['netflix', 'spotify', 'movie', 'cinema', 'theater', 'ticket', 'game', 'steam', 'playstation', 'xbox', 'hbo', 'disney'],
-    'Shopping': ['amazon', 'apple', 'best buy', 'ikea', 'zara', 'h&m', 'mall', 'clothing', 'shoes', 'electronics'],
-    'Bills & Utilities': ['electric', 'water', 'internet', 'comcast', 'verizon', 't-mobile', 'at&t', 'rent', 'mortgage', 'insurance'],
-    'Health & Wellness': ['pharmacy', 'cvs', 'walgreens', 'doctor', 'hospital', 'gym', 'planet fitness', 'clinic']
+    'Food & Drink': [
+        // Indian QSR & Chains
+        'zomato', 'swiggy', 'dominos', 'pizza hut', 'kfc', 'mcdonalds', 'burger king',
+        'subway', 'dunkin', 'starbucks', 'cafe coffee day', 'ccd', 'barista', 'third wave',
+        'chaayos', 'tea post', 'mao', 'box8', 'faasos', 'behrouz', 'oven story',
+        'barbeque nation', 'barbeque', 'punjab grill', 'haldirams', 'bikaner',
+        'saravana bhavan', 'udupi', 'vaango', 'id fresh', 'freshmenu',
+        // Generic
+        'restaurant', 'cafe', 'coffee', 'pizza', 'burger', 'biryani', 'dhaba',
+        'hotel', 'canteen', 'tiffin', 'mess', 'food', 'dinner', 'lunch', 'breakfast',
+        'bakery', 'sweet', 'mithai', 'chaat', 'juice', 'lassi', 'chai', 'tea',
+        'bar', 'pub', 'brewery', 'lounge', 'grill', 'kebab', 'diner', 'eatery',
+        'thali', 'paratha', 'idli', 'dosa', 'shawarma', 'rolls', 'wrap'
+    ],
+
+    'Groceries': [
+        // Indian Supermarkets & Apps
+        'bigbasket', 'big basket', 'blinkit', 'grofers', 'zepto', 'dunzo', 'instamart',
+        'swiggy instamart', 'jiomart', 'reliance fresh', 'reliance smart', 'dmart',
+        'more supermarket', 'more retail', 'spencer', 'nature basket', 'foodhall',
+        'star bazaar', 'hypercity', 'lulu', 'nilgiris', 'namdhari', 'spar',
+        'metro cash', 'easyday', 'heritage fresh',
+        // Generic
+        'grocery', 'supermarket', 'vegetables', 'fruits', 'dairy', 'milk', 'eggs',
+        'provisions', 'kirana', 'ration', 'sabzi', 'market', 'mandi', 'bazaar',
+        'masala', 'spices', 'rice', 'dal', 'flour', 'atta', 'oil', 'ghee'
+    ],
+
+    'Transport': [
+        // Ride-hailing & Rentals
+        'uber', 'ola', 'rapido', 'meru', 'jugnu', 'blumart', 'savaari',
+        'zoom car', 'zoomcar', 'revv', 'drivezy', 'bounce', 'yulu',
+        // Fuel
+        'indian oil', 'iocl', 'hp petrol', 'bharat petroleum', 'bpcl', 'hpcl',
+        'shell', 'essar', 'petrol', 'diesel', 'fuel', 'cng', 'gas station',
+        // Public Transport & Rail
+        'irctc', 'indian railways', 'metro', 'bmtc', 'best bus', 'dtc',
+        'nmmt', 'ksrtc', 'tnstc', 'msrtc', 'gsrtc', 'red bus', 'redbus',
+        'abhibus', 'bus ticket', 'train ticket', 'railway',
+        // Air Travel
+        'indigo', 'air india', 'spicejet', 'vistara', 'go first', 'akasa',
+        'airline', 'flight', 'airport', 'makemytrip', 'goibibo', 'cleartrip',
+        'ixigo', 'yatra', 'easemytrip',
+        // Parking & Tolls
+        'fastag', 'toll', 'parking', 'nhai', 'parking fee',
+        // Generic
+        'taxi', 'auto', 'rickshaw', 'cab', 'transit', 'commute', 'travel'
+    ],
+
+    'Entertainment': [
+        // OTT Platforms
+        'netflix', 'amazon prime', 'hotstar', 'disney hotstar', 'sony liv', 'sonyliv',
+        'zee5', 'voot', 'mxplayer', 'jio cinema', 'jiocinema', 'aha', 'erosnow',
+        'hungama', 'altbalaji', 'hoichoi', 'sun nxt',
+        // Music
+        'spotify', 'gaana', 'wynk', 'jiosaavn', 'saavn', 'apple music', 'youtube premium',
+        // Gaming
+        'steam', 'playstation', 'xbox', 'nintendo', 'battlegrounds', 'bgmi',
+        'google play games', 'mobile legends', 'mpl', 'dream11', 'myteam11',
+        // Cinema & Events
+        'bookmyshow', 'paytm movies', 'pvr', 'inox', 'cinepolis', 'carnival cinemas',
+        'movie', 'cinema', 'theatre', 'multiplex', 'ticket', 'event', 'concert',
+        'show', 'play', 'stand up', 'comedy', 'amusement', 'theme park',
+        // Sports
+        'ipl ticket', 'fantasy sports', 'sport ticket', 'stadium'
+    ],
+
+    'Shopping': [
+        // E-commerce
+        'amazon', 'flipkart', 'myntra', 'meesho', 'snapdeal', 'ajio', 'nykaa',
+        'tatacliq', 'tata cliq', 'reliance digital', 'croma', 'vijay sales',
+        'shopclues', 'paytm mall', 'jiomart', 'firstcry', 'pepperfry', 'urban ladder',
+        // Fashion
+        'zara', 'h&m', 'uniqlo', 'pantaloons', 'westside', 'shoppers stop',
+        'lifestyle', 'max fashion', 'fbb', 'being human', 'allen solly',
+        'van heusen', 'peter england', 'louis philippe', 'raymond', 'manyavar',
+        'fabindia', 'biba', 'w for woman', 'global desi', 'anita dongre',
+        // Footwear
+        'bata', 'liberty', 'metro shoes', 'woodland', 'red tape', 'puma', 'nike',
+        'adidas', 'reebok', 'skechers', 'new balance', 'crocs', 'hush puppies',
+        // Electronics
+        'apple', 'samsung', 'mi store', 'oneplus', 'boat', 'noise', 'imagine',
+        'best buy', 'ikea', 'dell', 'hp', 'lenovo', 'asus',
+        // Beauty & Personal Care (non-wellness)
+        'nykaa', 'purplle', 'sugar cosmetics', 'mac', 'lakme', 'mamaearth',
+        'plum', 'wow', 'forest essentials', 'kama ayurveda',
+        // Home & Decor
+        'ikea', 'pepperfry', 'urban ladder', '@home', 'home centre',
+        // Generic
+        'mall', 'clothing', 'shoes', 'electronics', 'gadget', 'accessories',
+        'jewellery', 'watch', 'bags', 'luggage', 'gift', 'stationery'
+    ],
+
+    'Bills & Utilities': [
+        // Electricity
+        'bescom', 'msedcl', 'tata power', 'adani electricity', 'bses', 'tneb',
+        'cesc', 'wbsedcl', 'electricity bill', 'power bill', 'electric',
+        // Water & Gas
+        'bwssb', 'water bill', 'indraprastha gas', 'mahanagar gas', 'mgl',
+        'gujarat gas', 'piped gas', 'lpg', 'indane', 'hp gas', 'bharat gas',
+        // Internet & Phone
+        'jio', 'airtel', 'vi', 'vodafone idea', 'bsnl', 'act fibernet', 'act',
+        'hathway', 'tatasky broadband', 'you broadband', 'den', 'spectranet',
+        'recharge', 'mobile bill', 'broadband', 'internet bill', 'postpaid',
+        // DTH & Cable
+        'tata sky', 'tataplay', 'dish tv', 'sun direct', 'airtel dth', 'videocon d2h',
+        'cable tv', 'dth recharge',
+        // Rent & Housing
+        'rent', 'nobroker', 'housing.com', 'magicbricks', 'maintenance', 'society',
+        'apartment', 'pg', 'hostel', 'lease',
+        // Insurance
+        'lic', 'hdfc life', 'icici prudential', 'sbi life', 'max life',
+        'star health', 'niva bupa', 'bajaj allianz', 'new india assurance',
+        'national insurance', 'united india', 'care health', 'insurance premium',
+        // Generic
+        'utility', 'bill payment', 'mortgage', 'emi'
+    ],
+
+    'Health & Wellness': [
+        // Pharmacy & Delivery
+        'apollo pharmacy', 'medplus', 'netmeds', 'pharmeasy', '1mg', 'tata 1mg',
+        'practo', 'mfine', 'healthians', 'thyrocare', 'lal path', 'dr lal',
+        'metropolis', 'pharmacy', 'medical shop', 'chemist', 'medicine',
+        // Hospitals & Clinics
+        'apollo hospital', 'fortis', 'manipal hospital', 'narayana health',
+        'aster', 'medanta', 'max hospital', 'aiims', 'columbia asia',
+        'doctor', 'hospital', 'clinic', 'diagnostic', 'lab test', 'health checkup',
+        'consultation', 'specialist',
+        // Fitness
+        'cult fit', 'cultfit', 'cure fit', 'gold gym', 'anytime fitness',
+        'fitness first', 'talwalkars', 'gym', 'fitness', 'yoga', 'zumba',
+        'crossfit', 'pilates', 'physiotherapy',
+        // Mental Health
+        'therapist', 'counseling', 'meditation', 'headspace', 'calm', 'mindhouse',
+        // Generic
+        'wellness', 'ayurveda', 'homeopathy', 'dental', 'dentist', 'optical',
+        'spectacles', 'contact lens', 'lenskart'
+    ],
+
+    'Investments & Trading': [
+        // Stockbrokers & Trading Platforms
+        'zerodha', 'groww', 'upstox', 'angel broking', 'angel one', 'paytm money',
+        'icicidirect', 'icici direct', 'hdfc securities', 'kotak securities',
+        'motilal oswal', '5paisa', 'sharekhan', 'geojit', 'edelweiss', 'nirmal bang',
+        'sbisec', 'sbi securities', 'axis direct', 'dhan', 'fyers', 'mstock',
+        // Mutual Funds & SIP
+        'smallcase', 'kuvera', 'coin by zerodha', 'mfcentral', 'camsonline',
+        'karvy', 'cams', 'franklin templeton', 'mirae asset', 'axis mutual fund',
+        'sbi mutual fund', 'hdfc mutual fund', 'icici mutual fund', 'nippon india',
+        'kotak mutual fund', 'dsp mutual fund', 'uti mutual fund', 'aditya birla',
+        // Generic
+        'mutual fund', 'sip', 'stocks', 'shares', 'demat', 'trading', 'equity',
+        'nifty', 'sensex', 'ipo', 'portfolio', 'dividend', 'brokerage',
+        'gold etf', 'index fund', 'elss', 'nps', 'ppf deposit', 'fd', 'fixed deposit',
+        'recurring deposit', 'rd', 'bonds', 'sovereign gold bond', 'sgb'
+    ],
+
+    'Loans & EMI': [
+        // Banks
+        'hdfc bank', 'icici bank', 'sbi loan', 'axis bank loan', 'kotak loan',
+        'bajaj finserv', 'bajaj finance', 'tata capital', 'l&t finance',
+        'muthoot finance', 'manappuram', 'shriram finance', 'piramal finance',
+        'fullerton india', 'aditya birla finance', 'home credit', 'cashe',
+        'moneyview', 'navi', 'kreditbee', 'lazypay', 'slice', 'uni cards',
+        'early salary', 'stashfin', 'fibe',
+        // Generic
+        'emi', 'loan repayment', 'home loan', 'car loan', 'personal loan',
+        'education loan', 'gold loan', 'loan emi', 'equated monthly',
+        'prepayment', 'foreclosure', 'part payment', 'loan processing fee',
+        'down payment', 'mortgage', 'hypothecation'
+    ],
+
+    'Credit Card Bills': [
+        // Card Issuers
+        'hdfc credit card', 'icici credit card', 'sbi card', 'axis credit card',
+        'kotak credit card', 'american express', 'amex', 'citi credit card',
+        'indusind credit card', 'yes bank card', 'rbl credit card', 'idfc first card',
+        'one card', 'slice card', 'uni card', 'scapia',
+        // Generic
+        'credit card bill', 'card outstanding', 'minimum due', 'total due',
+        'card payment', 'credit card payment', 'card statement', 'revolving credit',
+        'credit card emi', 'card emi', 'balance transfer'
+    ],
+
+    'Insurance': [
+        // Life Insurance
+        'lic', 'hdfc life', 'icici prudential', 'sbi life', 'max life',
+        'bajaj allianz life', 'tata aia', 'kotak life', 'canara hsbc life',
+        'pramerica life', 'edelweiss tokio', 'aegon life', 'pnb metlife',
+        // Health Insurance
+        'star health', 'niva bupa', 'care health', 'hdfc ergo health',
+        'aditya birla health', 'manipal cigna', 'royal sundaram health',
+        'religare health',
+        // General Insurance
+        'new india assurance', 'national insurance', 'united india insurance',
+        'oriental insurance', 'bajaj allianz general', 'tata aig', 'icici lombard',
+        'hdfc ergo', 'reliance general', 'future generali', 'iffco tokio',
+        // Vehicle Insurance
+        'vehicle insurance', 'car insurance', 'bike insurance', 'two wheeler insurance',
+        'motor insurance', 'acko', 'digit insurance', 'go digit',
+        // Generic
+        'insurance premium', 'policy renewal', 'life cover', 'term plan',
+        'endowment', 'ulip', 'health cover', 'mediclaim', 'floater policy',
+        'third party', 'comprehensive cover', 'claim', 'nominee'
+    ],
+
+    'Tax & Compliance': [
+        // Platforms & Services
+        'cleartax', 'taxbuddy', 'tax2win', 'myitreturn', 'quicko',
+        'hrblock india', 'ca firm', 'chartered accountant', 'cs firm',
+        'indiafilings', 'vakilsearch', 'legalzoom india', 'razorpay rize',
+        'startupindia', 'mca portal',
+        // Generic
+        'tds payment', 'advance tax', 'income tax', 'self assessment tax',
+        'gst payment', 'gst filing', 'itr filing', 'tax filing', 'ca fees',
+        'audit fees', 'compliance', 'esi', 'pf contribution', 'professional tax',
+        'stamp duty', 'registration charges', 'notary', 'apostille'
+    ],
+
+    'UPI & Wallet Transfers': [
+        // Wallets & UPI Apps
+        'paytm', 'phonepe', 'google pay', 'gpay', 'amazon pay', 'mobikwik',
+        'freecharge', 'airtel money', 'jio money', 'bhim', 'cred',
+        // Generic
+        'upi transfer', 'wallet transfer', 'money transfer', 'neft', 'rtgs', 'imps',
+        'bank transfer', 'fund transfer', 'send money', 'request money',
+        'wallet recharge', 'wallet topup', 'cashback', 'referral bonus'
+    ],
+
+    'Banking Charges': [
+        // Generic — no specific brands needed here
+        'bank charges', 'account maintenance', 'amc', 'annual maintenance',
+        'debit card fee', 'credit card fee', 'annual fee', 'joining fee',
+        'cheque bounce', 'processing fee', 'late payment fee', 'penalty',
+        'interest charged', 'overdraft', 'forex markup', 'currency conversion',
+        'atm charges', 'sms charges', 'locker charges', 'dd charges',
+        'chequebook charges', 'minimum balance penalty'
+    ],
+
+    'Education': [
+        // Ed-Tech
+        'byjus', 'byju', 'unacademy', 'vedantu', 'upgrad', 'coursera', 'udemy',
+        'simplilearn', 'great learning', 'whitehat jr', 'toppr', 'doubtnut',
+        'physicswallah', 'pw', 'scaler', 'coding ninjas',
+        // Schools & Colleges
+        'school fee', 'college fee', 'tuition', 'coaching', 'institute',
+        'university fee', 'admission fee', 'examination fee',
+        // Books & Supplies
+        'amazon books', 'flipkart books', 'crossword', 'higginbothams',
+        'book', 'stationery', 'notebook', 'pen', 'pencil', 'supplies',
+        // Generic
+        'course', 'certification', 'workshop', 'seminar', 'training', 'class'
+    ],
+
+    'Travel & Hotels': [
+        // Booking Platforms
+        'makemytrip', 'goibibo', 'cleartrip', 'yatra', 'ixigo', 'easemytrip',
+        'airbnb', 'oyo', 'treebo', 'fabhotels', 'zostel', 'booking.com',
+        'agoda', 'hotels.com',
+        // Hotels
+        'taj hotels', 'oberoi', 'itc hotels', 'leela', 'marriott', 'hyatt',
+        'hilton', 'radisson', 'ibis', 'novotel', 'holiday inn', 'lemon tree',
+        'hotel', 'resort', 'homestay', 'lodge', 'hostel',
+        // Generic
+        'vacation', 'holiday', 'trip', 'tour', 'sightseeing', 'visa fee'
+    ],
+
+    'Personal Care': [
+        // Salons & Spas
+        'lakme salon', 'jawed habib', 'naturals salon', 'green trends',
+        'toni and guy', 'enrich salon', 'b blunt', 'juice salon',
+        'salon', 'spa', 'parlour', 'barbershop', 'haircut', 'facial',
+        'massage', 'waxing', 'threading', 'manicure', 'pedicure',
+        // Products
+        'mamaearth', 'wow', 'plum', 'himalaya', 'dabur', 'patanjali',
+        'gillette', 'philips shaver', 'veet', 'nivea', 'dove', 'head shoulders',
+        'shampoo', 'conditioner', 'lotion', 'soap', 'deodorant', 'perfume'
+    ],
+
+    'Kids & Baby': [
+        'firstcry', 'mothercare', 'baby', 'infant', 'toddler', 'toys',
+        'hamleys', 'toy', 'kids clothing', 'school supplies', 'diaper',
+        'pampers', 'huggies', 'baby food', 'formula', 'pram', 'stroller'
+    ],
+
+    'Pets': [
+        'dog food', 'cat food', 'pedigree', 'whiskas', 'royal canin',
+        'drools', 'vet', 'veterinary', 'pet clinic', 'pet shop', 'petco',
+        'dog grooming', 'pet medicine', 'aquarium', 'pet supplies'
+    ],
+
+    'Donations & Religious': [
+        'temple', 'mosque', 'church', 'gurudwara', 'donation', 'charity',
+        'ngo', 'tirupati', 'shirdi', 'dakshina', 'prasad', 'zakat',
+        'giveindia', 'milaap', 'ketto', 'crowdfunding'
+    ],
+
+    'Subscriptions & SaaS': [
+        'notion', 'figma', 'adobe', 'canva', 'slack', 'zoom', 'gsuite',
+        'google workspace', 'microsoft 365', 'dropbox', 'github', 'chatgpt',
+        'openai', 'linkedin premium', 'subscription', 'membership', 'annual plan'
+    ]
 };
 
 function categorizePlace(placeName) {
@@ -59,16 +354,16 @@ const transactionsTableBody = document.getElementById('transactions-table-body')
 function initGreeting() {
     const greetingEl = document.getElementById('greeting');
     if (!greetingEl) return;
-    
+
     const hour = new Date().getHours();
     let timeGreeting = "Good Evening";
-    
+
     if (hour < 12) {
         timeGreeting = "Good Morning";
     } else if (hour < 17) {
         timeGreeting = "Good Afternoon";
     }
-    
+
     greetingEl.textContent = `${timeGreeting}, Jithendran`;
 }
 
@@ -208,11 +503,11 @@ form.addEventListener('submit', async (e) => {
         // Use OpenStreetMap Nominatim to geocode the inputted place string
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&format=json&limit=1`);
         const data = await response.json();
-        
+
         if (data && data.length > 0) {
-            coordinates = { 
-                lat: parseFloat(data[0].lat), 
-                lng: parseFloat(data[0].lon) 
+            coordinates = {
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon)
             };
         }
     } catch (err) {
@@ -242,7 +537,7 @@ incomeForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const amount = parseFloat(incomeAmountInput.value);
-    
+
     if (isNaN(amount) || amount <= 0) return;
 
     saveTransaction('income', amount, 'Income Added', 'Income', null);
